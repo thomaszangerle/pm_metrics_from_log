@@ -1,0 +1,12 @@
+name: pm_log_analyzer
+title: pm_log_analyzer
+username:
+account: arshiny
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 560318
+bundleId: 1690175
+url: https://arbe.shinyapps.io/pm_log_analyzer/
+when: 1541696436.43856
+asMultiple: FALSE
+asStatic: FALSE
