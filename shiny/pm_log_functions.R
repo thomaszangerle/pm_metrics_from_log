@@ -76,11 +76,17 @@ pm_log_extract_metrics <- function(regex_table, log_table, sn){
 
 sn_pattern <- "PROMAPPER-([1-3][0-9]SM[0-9]{3})" 
 pm_log_extract_sn <- function(log){
-    extracted_sn <- log %>% 
+     filtered_row <- log %>% 
         filter(str_detect(txt, sn_pattern)) %>% 
-        extract(txt, into = "sn", sn_pattern) %>% 
-        head(1) %>% 
-        pull(sn)
+         head(1)
+    if(filtered_row %>% nrow() > 0){
+        filtered_row %>% 
+            extract(txt, into = "sn", sn_pattern) %>% 
+            head(1) %>% 
+            pull(sn)
+    }
+    else
+        NA
 }
 
 pm_log_plot_metrics_type <- function(type, metrics_table, plot_title){
