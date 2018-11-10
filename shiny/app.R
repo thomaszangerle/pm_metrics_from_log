@@ -35,7 +35,7 @@ ui <- fluidPage(
       
       # Show a plot of the generated distribution
       mainPanel(
-          plotOutput(outputId = "plots", height = 700, width = 1400) %>%
+          plotlyOutput(outputId = "plots", height = 700, width = 1400) %>%
                withSpinner(color="grey")
       )
 )
@@ -51,11 +51,12 @@ server <- function(input, output) {
         regex_table  <- pm_log_read_regex_table(input$regex_file$datapath)
         sn <- pm_log_extract_sn(log_table)
         metrics_table <- pm_log_extract_metrics(regex_table, log_table, sn)
-        pm_log_plot_all(metrics_table, "test")
+        pm_log_plot_all(metrics_table, "")
     })
     
-    output$plots <- renderPlot({
-        plot_list()[[1]]
+    output$plots <- renderPlotly({
+        plot_list()[[1]] %>% 
+            ggplotly() 
     })
     
 }
