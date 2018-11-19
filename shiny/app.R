@@ -2,6 +2,7 @@ library(shiny)
 library(tidyverse)
 library(lubridate)
 library(shinycssloaders)
+library(plotly)
 options(shiny.maxRequestSize=30*1024^2)
 # library(Cairo)
 # options(shiny.usecairo=T)
@@ -29,8 +30,16 @@ ui <- fluidPage(
                            multiple = FALSE,
                            accept = ".csv"
                  )
+          ),
+          
+          column(3, 
+                 selectizeInput(
+                     inputId = "cat",
+                     label = "CATEGORY : ",
+                     choices = "",
+                     selected = ""
+                 )
           )
-
       ),
       
       # Show a plot of the generated distribution
@@ -40,10 +49,17 @@ ui <- fluidPage(
       )
 )
 
-# Define server logic required to draw a histogram
-server <- function(input, output) {
+
+server <- function(input, output, session) {
     
-    plot_list <- reactive({
+    observe({
+        updateSelectizeInput(session, "cat",
+                             choices = c(Choose = "", cat_list()),
+                             selected = cat_list()[[1]]
+        )  
+    })
+    
+    metrics_table <- reactive({
         req(input$log_file)
         req(input$regex_file)
         
@@ -51,13 +67,41 @@ server <- function(input, output) {
         regex_table  <- pm_log_read_regex_table(input$regex_file$datapath)
         sn <- pm_log_extract_sn(log_table)
         metrics_table <- pm_log_extract_metrics(regex_table, log_table, sn)
-        pm_log_plot_all(metrics_table, "")
+        metrics_table
+    })
+    
+    cat_list <- reactive({
+        req(input$log_file)
+        req(input$regex_file)
+        
+        metrics_table  <- metrics_table()
+        metrics_table %>% 
+            distinct(TYPE) %>% 
+            pull(TYPE)
+    })
+    
+    plot_list <- reactive({
+        req(input$log_file)
+        req(input$regex_file)
+        
+        pm_log_plot_all(metrics_table(), "")
     })
     
     output$plots <- renderPlotly({
-        plot_list()[[1]] %>% 
+        plot_list()[[input$cat]] %>% 
             ggplotly() 
     })
+    
+    # output$downloadData <- downloadHandler(
+    #   filename = function() {
+    #     paste('data-', Sys.Date(), '.csv', sep='')
+    #   },
+    #   content = function(con) {
+    #     write.csv(data, con)
+    #   }
+    # )
+    
+
     
 }
 

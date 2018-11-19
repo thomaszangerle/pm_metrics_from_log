@@ -107,7 +107,9 @@ pm_log_plot_all <- function(metrics_table, plot_title){
         distinct(TYPE) %>% 
         pull(TYPE)
     
-    map(types, pm_log_plot_metrics_type, metrics_table = metrics_table, plot_title = plot_title)
+    plots <- map(types, pm_log_plot_metrics_type, metrics_table = metrics_table, plot_title = plot_title)
+    names(plots) <- types
+    plots
 }
 
 
