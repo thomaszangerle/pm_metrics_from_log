@@ -19,8 +19,8 @@ ui <- fluidPage(
    fluidRow(
           
           column(3,
-                 fileInput("log_file", "Upload log file",
-                           multiple = FALSE,
+                 fileInput("log_file", "Upload log file(s)",
+                           multiple = TRUE,
                            accept = ".log"
                  )
           ),
@@ -40,10 +40,22 @@ ui <- fluidPage(
                      selected = ""
                  )
           )
+          
       ),
+   
+   # Download CSV and PDF row
+   fluidRow(
+       column(3,
+              downloadButton('downloadData', 'CSV')
+       ),
+       
+       column(3,
+              downloadButton('report', 'HTML')
+       )
+   ),
       
       # Show a plot of the generated distribution
-      mainPanel(
+   mainPanel(
           plotlyOutput(outputId = "plots", height = 700, width = 1400) %>%
                withSpinner(color="grey")
       )
@@ -63,7 +75,8 @@ server <- function(input, output, session) {
         req(input$log_file)
         req(input$regex_file)
         
-        log_table <- pm_log_read_log_file(input$log_file$datapath)
+        log_table_list <- map(input$log_file$datapath, pm_log_read_log_file)
+        log_table <- log_table_list %>% bind_rows()
         regex_table  <- pm_log_read_regex_table(input$regex_file$datapath)
         sn <- pm_log_extract_sn(log_table)
         metrics_table <- pm_log_extract_metrics(regex_table, log_table, sn)
@@ -88,18 +101,39 @@ server <- function(input, output, session) {
     })
     
     output$plots <- renderPlotly({
-        plot_list()[[input$cat]] %>% 
-            ggplotly() 
+        plot_list()[[input$cat]] 
     })
     
-    # output$downloadData <- downloadHandler(
-    #   filename = function() {
-    #     paste('data-', Sys.Date(), '.csv', sep='')
-    #   },
-    #   content = function(con) {
-    #     write.csv(data, con)
-    #   }
-    # )
+    output$downloadData <- downloadHandler(
+      filename = function() {
+        str_c('data_', format(now(), format="%Y%m%dT%H%M%S"), '.csv', sep='')
+      },
+      content = function(con) {
+        write_csv(metrics_table(), con)
+      }
+    )
+    
+    output$report <- downloadHandler(
+        
+        filename = str_c('metrics_', format(now(), format="%Y%m%dT%H%M%S"), '.html', sep=''),
+        
+        content = function(file) {
+            # Copy the report file to a temporary directory before processing it.
+            tempReport <- file.path(tempdir(), "report.Rmd")
+            file.copy("report.Rmd", tempReport, overwrite = TRUE)
+            
+            # Set up parameters to pass to Rmd document
+            plots_copy <- plot_list()
+            params <- list(plots = plots_copy)
+            
+            # Knit the document, passing in the `params` list, and eval it in a
+            # child of the global environment (this isolates the code in the document
+            # from the code in this app).
+            rmarkdown::render(tempReport, output_file = file,
+                              params = params,
+                              envir = new.env(parent = globalenv())
+            )}
+    )
     
 
     

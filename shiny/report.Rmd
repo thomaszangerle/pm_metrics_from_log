@@ -1,0 +1,17 @@
+---
+title: "ProMapper Metrics"
+output: html_document
+sansfont: Arial
+classoption: landscape
+params:
+  plots : NA
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,  fig.width=12, fig.height=7.5, dpi = 100, echo = FALSE, results='hide'}
+params$plots
+```
+
