@@ -97,7 +97,9 @@ pm_log_plot_metrics_type <- function(type, metrics_table, plot_title){
         geom_line(color = "blue", alpha = .3) +
         geom_point(size = 2, alpha = .5, color = "blue") +
         labs(
-            title = plot_title
+            title = plot_title,
+            x = "",
+            y = ""
         ) +
         scale_x_datetime(NULL, date_labels = "%m-%d\n%H:%M")
 }
