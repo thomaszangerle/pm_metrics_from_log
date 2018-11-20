@@ -99,7 +99,7 @@ pm_log_plot_metrics_type <- function(type, metrics_table, plot_title){
         labs(
             title = plot_title
         ) +
-        scale_x_datetime(NULL, date_labels = "%H:%M")
+        scale_x_datetime(NULL, date_labels = "%m-%d\n%H:%M")
 }
 
 pm_log_plot_all <- function(metrics_table, plot_title){
