@@ -39,6 +39,15 @@ ui <- fluidPage(
                      choices = "",
                      selected = ""
                  )
+          ),
+          
+          column(3,
+                 dateRangeInput('dateRange',
+                                label = 'Date range input: yyyy-mm-dd',
+                                start = NA,#floor_date(today(), "year"), 
+                                end = NA#ceiling_date(today(), "year")
+                 )
+                 
           )
           
       ),
@@ -80,8 +89,24 @@ server <- function(input, output, session) {
         regex_table  <- pm_log_read_regex_table(input$regex_file$datapath)
         sn <- pm_log_extract_sn(log_table)
         metrics_table <- pm_log_extract_metrics(regex_table, log_table, sn)
-        metrics_table
     })
+    
+    metrics_table_filtered <- reactive({
+        
+        metrics_table_filtered <- metrics_table()
+        
+        
+        # filter on date
+        if(all(!(is.na(input$dateRange)))){
+            metrics_table_filtered <- metrics_table_filtered %>% 
+                filter(
+                    TIME >= input$dateRange[1] & TIME <= input$dateRange[2] + ddays(1)
+                )
+        }
+        
+        metrics_table_filtered
+    })
+
     
     cat_list <- reactive({
         req(input$log_file)
@@ -97,7 +122,7 @@ server <- function(input, output, session) {
         req(input$log_file)
         req(input$regex_file)
         
-        pm_log_plot_all(metrics_table(), "")
+        pm_log_plot_all(metrics_table_filtered(), "")
     })
     
     output$plots <- renderPlotly({
