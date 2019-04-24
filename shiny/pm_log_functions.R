@@ -72,6 +72,12 @@ pm_log_extract_metrics <- function(regex_table, log_table, sn){
         ) %>% 
         select(MODEL, SN, MID, TIME, TYPE, NAME, VALUE) %>% 
         arrange(TIME)
+    
+    # remove values equal 0
+    metrics <- metrics %>% 
+        filter(VALUE != 0)
+    
+    metrics
 }
 
 sn_pattern <- "PROMAPPER-([1-3][0-9]SM[0-9]{3})" 
